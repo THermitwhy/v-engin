@@ -1,6 +1,7 @@
 #pragma once
 #include "veWindow.hpp"
 #include "veDevice.hpp"
+#include "veSwapChain.hpp"
 //#include "vePipeline.hpp"
 //#include "veRender.hpp"
 namespace vengin {
@@ -16,8 +17,9 @@ namespace vengin {
 		//void createPipelineLayout();
 		void run();
 	private:
+		veSwapChain vSwapchain;
 		veWindow vWindow{800,600,"hello vulkan"};
-		veDevice vDevice{ vWindow };
+		veDevice vDevice{ vWindow,vSwapchain };
 		//veRender render;
 		//vePipeline vPipeline;//Ð´º¯Êý¶¨Òå°É
 		//VkPipelineLayout pipelineLayout;

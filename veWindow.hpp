@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#define WIDTH 800
+#define HEIGHT 600
 namespace vengin {
 	class veWindow
 	{
