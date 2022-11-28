@@ -57,3 +57,11 @@ VkExtent2D vengin::veSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR&
 		return actualExtent;
 	}
 }
+
+void vengin::veSwapChain::getSwapChainImages(VkDevice& device)
+{
+	uint32_t imageCount;
+	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);//获取数量
+	swapChainImages.resize(imageCount);//设置交换链图像容器大小
+	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());//获取交换链图像
+}

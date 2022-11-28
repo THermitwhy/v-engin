@@ -308,6 +308,8 @@ namespace vengin {
 			&swapChain.swapChain) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create swap chain!");
 		}
+		swapChain.swapChainExtent = extent;
+		swapChain.swapChainImageFormat = createInfo.imageFormat;
 	}
 	void veDevice::createCommandPool()
 	{
