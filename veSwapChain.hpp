@@ -12,9 +12,12 @@ namespace vengin {
 			availablePresentModes);
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		void getSwapChainImages(VkDevice& device);
+		void createImageViews(VkDevice &device);
+		void cleanImageViews(VkDevice& device);
 		//obj
 		VkSwapchainKHR swapChain;
-		std::vector<VkImage> swapChainImages;
+		std::vector<VkImage> swapChainImages;//Ωªªª¡¥ÕºœÒ
+		std::vector<VkImageView> swapChainImageViews;//Ωªªª¡¥ÕºœÒ ”Õº
 
 		VkFormat swapChainImageFormat;
 		VkExtent2D swapChainExtent;

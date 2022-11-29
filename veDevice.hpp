@@ -59,6 +59,7 @@ namespace vengin {
 		void createSurface();//创建渲染表面
 		void createLogicalDevice();//创建逻辑设备
 		void createSwapChain();
+		void createSwapChainImageViews();
 		void createCommandPool();
 		bool isDeviceSuitable(VkPhysicalDevice device);//筛选物理设备
 		

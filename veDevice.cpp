@@ -51,9 +51,11 @@ namespace vengin {
 		createLogicalDevice();//创建逻辑设备
 		createCommandPool();//创建命令池
 		createSwapChain();
+		createSwapChainImageViews();
 	}
 	veDevice::~veDevice()
 	{
+		swapChain.cleanImageViews(device_);
 		vkDestroySwapchainKHR(device_, swapChain.swapChain, nullptr);
 		vkDestroyCommandPool(device_, commandPool, nullptr);
 		vkDestroySurfaceKHR(instance, surface_, nullptr);
@@ -310,6 +312,10 @@ namespace vengin {
 		}
 		swapChain.swapChainExtent = extent;
 		swapChain.swapChainImageFormat = createInfo.imageFormat;
+	}
+	void veDevice::createSwapChainImageViews()
+	{
+		swapChain.createImageViews(device_);
 	}
 	void veDevice::createCommandPool()
 	{
