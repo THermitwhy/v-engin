@@ -1,7 +1,8 @@
 #pragma once
-#pragma once
+#define GLFW_INCLUDE_VULKAN
 #include <fstream>
 #include <vector>
+#include <GLFW/glfw3.h>
 #ifndef VE_PIPELINE
 #define VE_PIPELINE
 
@@ -22,5 +23,18 @@ namespace vengin {
 
 		return buffer;
 	}
+
+	class vePipeline {
+	public:
+		vePipeline(VkDevice& device,VkExtent2D swapChainExtent);
+		void loadShader();
+		void createPipeline();
+		VkShaderModule  createShaderModule(const std::vector<char>& code);
+		VkDevice& device;
+		VkShaderModule vertShaderModule;
+		VkShaderModule fragShaderModule;
+		VkPipelineLayout pipelineLayout;
+		VkExtent2D swapChainExtent;
+	};
 }
 #endif
