@@ -4,8 +4,11 @@
 namespace vengin {
 	class veRenderPass {
 	public:
-		veRenderPass(VkFormat swapChainImageFormat);
+		veRenderPass(VkDevice& device,VkFormat swapChainImageFormat);
 		void createRenderPass();
+		void cleanRenderPass();
 		VkFormat swapChainImageFormat;
+		VkRenderPass renderPass;
+		VkDevice& device;
 	};
 }

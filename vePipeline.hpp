@@ -26,14 +26,17 @@ namespace vengin {
 
 	class vePipeline {
 	public:
-		vePipeline(VkDevice& device,VkExtent2D swapChainExtent);
+		vePipeline(VkDevice& device,VkExtent2D swapChainExtent, VkRenderPass& renderPass);
 		void loadShader();
 		void createPipeline();
+		void cleanPipeline();
 		VkShaderModule  createShaderModule(const std::vector<char>& code);
 		VkDevice& device;
 		VkShaderModule vertShaderModule;
 		VkShaderModule fragShaderModule;
 		VkPipelineLayout pipelineLayout;
+		VkRenderPass& renderPass;
+		VkPipeline graphicsPipeline;
 		VkExtent2D swapChainExtent;
 	};
 }
