@@ -40,6 +40,10 @@ namespace vengin {
 			throw std::runtime_error("failed to create render pass!");
 		}
 	}
+	void veRenderPass::createSwapChain()
+	{
+		 
+	}
 	void veRenderPass::cleanRenderPass()
 	{
 		vkDestroyRenderPass(device, renderPass, nullptr);

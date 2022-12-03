@@ -6,6 +6,7 @@ namespace vengin {
 	public:
 		veRenderPass(VkDevice& device,VkFormat swapChainImageFormat);
 		void createRenderPass();
+		void createSwapChain();
 		void cleanRenderPass();
 		VkFormat swapChainImageFormat;
 		VkRenderPass renderPass;
