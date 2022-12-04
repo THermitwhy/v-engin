@@ -8,6 +8,11 @@ vengin::vePipeline::vePipeline(veDevice& vedevice, VkExtent2D swapChainExtent, V
 	createPipeline();
 }
 
+vengin::vePipeline::~vePipeline()
+{
+	cleanPipeline();
+}
+
 void vengin::vePipeline::loadShader()
 {
 	auto vertShaderCode = readFile("vert.spv");//
@@ -170,12 +175,16 @@ void vengin::vePipeline::createPipeline()
 		&pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create graphics pipeline!");
 	}
+
+	vkDestroyShaderModule(vedevice.getDevice(), fragShaderModule, nullptr);
+	vkDestroyShaderModule(vedevice.getDevice(), vertShaderModule, nullptr);
 }
 
 void vengin::vePipeline::cleanPipeline()
 {
-	vkDestroyPipeline(vedevice.getDevice(), graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(vedevice.getDevice(), pipelineLayout, nullptr);
+	vkDestroyPipeline(vedevice.getDevice(), graphicsPipeline, nullptr);
+	
 }
 
 VkShaderModule vengin::vePipeline::createShaderModule(const std::vector<char>& code)

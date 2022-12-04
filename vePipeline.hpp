@@ -26,6 +26,7 @@ namespace vengin {
 	class vePipeline {
 	public:
 		vePipeline(veDevice& vedevice,VkExtent2D swapChainExtent, VkRenderPass& renderPass);
+		~vePipeline();
 		void loadShader();
 		void createPipeline();
 		void cleanPipeline();

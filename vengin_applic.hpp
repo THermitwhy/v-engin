@@ -6,6 +6,7 @@
 //#include "vePipeline.hpp"
 //#include "veRender.hpp"
 namespace vengin {
+	const int MAX_FRAMES_IN_FLIGHT = 2;
 	class applic
 	{
 	public:
@@ -18,10 +19,13 @@ namespace vengin {
 		//void createPipelineLayout();
 		void run();
 		void draw();
-		void createSemaphores();
+		void createSyncObjects();
+		void clean();
 	private:
-		VkSemaphore imageAvailableSemaphore;
-		VkSemaphore renderFinishedSemaphore;
+		std::vector<VkSemaphore> imageAvailableSemaphores;
+		std::vector<VkSemaphore> renderFinishedSemaphores;
+		std::vector<VkFence> inFlightFences;
+		size_t currentFrame = 0;
 		//veSwapChain vSwapchain;
 		veWindow vWindow{800,600,"hello vulkan"};
 		veDevice vDevice{ vWindow };

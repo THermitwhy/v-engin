@@ -69,5 +69,11 @@ namespace vengin {
 		
 	}
 
+	void veRender::clean()
+	{
+		vkDestroyCommandPool(vedevice.getDevice(), commandPool, nullptr);
+		delete veswapchain;
+	}
+
 	
 }

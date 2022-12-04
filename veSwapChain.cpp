@@ -11,6 +11,27 @@ vengin::veSwapChain::veSwapChain(veDevice& vedevice):vedevice(vedevice)
 	createFrameBuffers();
 }
 
+vengin::veSwapChain::~veSwapChain()
+{
+	clean();
+}
+
+void vengin::veSwapChain::clean()
+{
+	for (auto framebuffer : swapChainFramebuffers) {
+		vkDestroyFramebuffer(vedevice.getDevice(), framebuffer, nullptr);
+	}
+
+	vkDestroyRenderPass(vedevice.getDevice(), renderPass, nullptr);
+
+	for (auto imageView : swapChainImageViews) {
+		vkDestroyImageView(vedevice.getDevice(), imageView, nullptr);
+
+	}
+	vepipeline->cleanPipeline();
+	vkDestroySwapchainKHR(vedevice.getDevice(), swapChain, nullptr);
+}
+
 //表面格式(颜色，深度)
 VkSurfaceFormatKHR vengin::veSwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {

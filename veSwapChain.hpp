@@ -5,7 +5,8 @@ namespace vengin {
 	class veSwapChain {
 	public:
 		veSwapChain(veDevice& vedevice);
-
+		~veSwapChain();
+		void clean();
 		//func
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
 			& availableFormats);
