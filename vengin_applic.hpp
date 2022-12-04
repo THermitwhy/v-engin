@@ -2,6 +2,7 @@
 #include "veWindow.hpp"
 #include "veDevice.hpp"
 #include "veSwapChain.hpp"
+#include "veRender.hpp"
 //#include "vePipeline.hpp"
 //#include "veRender.hpp"
 namespace vengin {
@@ -16,11 +17,15 @@ namespace vengin {
 		//void setPipelineConfig(pipelineConfigInfo& config);
 		//void createPipelineLayout();
 		void run();
+		void draw();
+		void createSemaphores();
 	private:
-		veSwapChain vSwapchain;
+		VkSemaphore imageAvailableSemaphore;
+		VkSemaphore renderFinishedSemaphore;
+		//veSwapChain vSwapchain;
 		veWindow vWindow{800,600,"hello vulkan"};
-		veDevice vDevice{ vWindow,vSwapchain };
-		//veRender render;
+		veDevice vDevice{ vWindow };
+		veRender vRender{ vDevice };
 		//vePipeline vPipeline;//写函数定义吧
 		//VkPipelineLayout pipelineLayout;
 		//beginFrame->beginRender->endRender->endFrame这样子   

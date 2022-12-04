@@ -1,8 +1,14 @@
 #include "veSwapChain.hpp"
 
 
-vengin::veSwapChain::veSwapChain()
+vengin::veSwapChain::veSwapChain(veDevice& vedevice):vedevice(vedevice)
 {
+	createSwapChain();
+	getSwapChainImages();
+	createImageViews();
+	createRenderPass();
+	createPipeline();
+	createFrameBuffers();
 }
 
 //表面格式(颜色，深度)
@@ -58,15 +64,65 @@ VkExtent2D vengin::veSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR&
 	}
 }
 
-void vengin::veSwapChain::getSwapChainImages(VkDevice& device)
+void vengin::veSwapChain::createSwapChain()
 {
-	uint32_t imageCount;
-	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);//获取数量
-	swapChainImages.resize(imageCount);//设置交换链图像容器大小
-	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());//获取交换链图像
+		SwapChainSupportDetails swapChainSupport = vedevice.getSwapchainSupprts();
+
+		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+		if (swapChainSupport.capabilities.maxImageCount > 0 &&
+			imageCount > swapChainSupport.capabilities.maxImageCount) {
+			imageCount = swapChainSupport.capabilities.maxImageCount;
+		}
+		VkSwapchainCreateInfoKHR createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		createInfo.surface = vedevice.surface_;
+
+		createInfo.minImageCount = imageCount;
+		createInfo.imageFormat = surfaceFormat.format;
+		createInfo.imageColorSpace = surfaceFormat.colorSpace;
+		createInfo.imageExtent = extent;
+		createInfo.imageArrayLayers = 1;
+		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+		QueueFamilyIndices indices = vedevice.findPhysicalFamilies();
+		uint32_t queueFamilyIndices[] = { (uint32_t)indices.graphicsFamily,
+						(uint32_t)indices.presentFamily };
+
+		if (indices.graphicsFamily != indices.presentFamily) {
+			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+			createInfo.queueFamilyIndexCount = 2;
+			createInfo.pQueueFamilyIndices = queueFamilyIndices;
+		}
+		else {
+			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			createInfo.queueFamilyIndexCount = 0; // Optional
+			createInfo.pQueueFamilyIndices = nullptr; // Optional
+		}
+		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		createInfo.presentMode = presentMode;
+		createInfo.clipped = VK_TRUE;
+		createInfo.oldSwapchain = VK_NULL_HANDLE;
+		if (vkCreateSwapchainKHR(vedevice.getDevice(), &createInfo, nullptr,
+			&swapChain) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create swap chain!");
+		}
+		swapChainExtent = extent;
+		swapChainImageFormat = createInfo.imageFormat;
 }
 
-void vengin::veSwapChain::createImageViews(VkDevice& device)
+void vengin::veSwapChain::getSwapChainImages()
+{
+	uint32_t imageCount;
+	vkGetSwapchainImagesKHR(vedevice.getDevice(), swapChain, &imageCount, nullptr);//获取数量
+	swapChainImages.resize(imageCount);//设置交换链图像容器大小
+	vkGetSwapchainImagesKHR(vedevice.getDevice(), swapChain, &imageCount, swapChainImages.data());//获取交换链图像
+}
+
+void vengin::veSwapChain::createImageViews()
 {
 	swapChainImageViews.resize(swapChainImages.size());
 	for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -84,11 +140,66 @@ void vengin::veSwapChain::createImageViews(VkDevice& device)
 		createInfo.subresourceRange.levelCount = 1;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
-		if (vkCreateImageView(device, &createInfo, nullptr,
+		if (vkCreateImageView(vedevice.getDevice(), &createInfo, nullptr,
 			&swapChainImageViews[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image views!");
 		}
 	}
+}
+
+void vengin::veSwapChain::createRenderPass()
+{
+	VkAttachmentDescription colorAttachment = {};
+	colorAttachment.format = swapChainImageFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentRef = {};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+
+	VkRenderPassCreateInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+
+	VkSubpassDependency dependency = {};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependency;
+
+	if (vkCreateRenderPass(vedevice.getDevice(), &renderPassInfo, nullptr,
+		&renderPass) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create render pass!");
+	}
+}
+
+void vengin::veSwapChain::createPipeline()
+{
+	vepipeline = new vePipeline(vedevice,swapChainExtent,renderPass );
 }
 
 void vengin::veSwapChain::createFrameBuffers()
@@ -109,15 +220,18 @@ void vengin::veSwapChain::createFrameBuffers()
 		framebufferInfo.height = swapChainExtent.height;
 		framebufferInfo.layers = 1;
 
-		if (vkCreateFramebuffer(device, &framebufferInfo, nullptr,
+		if (vkCreateFramebuffer(vedevice.getDevice(), &framebufferInfo, nullptr,
 			&swapChainFramebuffers[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
+	}
 }
 
-void vengin::veSwapChain::cleanImageViews(VkDevice& device)
+
+
+void vengin::veSwapChain::cleanImageViews()
 {
 	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(device, imageView, nullptr);
+		vkDestroyImageView(vedevice.getDevice(), imageView, nullptr);
 	}
 }

@@ -1,6 +1,5 @@
 #pragma once
 #include "veWindow.hpp"
-#include "veSwapChain.hpp"
 namespace vengin {
 	struct QueueFamilyIndices {
 		uint32_t graphicsFamily;//支持绘制的队列族
@@ -22,7 +21,7 @@ namespace vengin {
 #else
 		const bool enableValidationLayers = true;
 #endif
-		veDevice(veWindow &window,veSwapChain &swapChain);
+		veDevice(veWindow &window);
 		~veDevice();
 		//禁止拷贝
 		veDevice(veDevice&) = delete;
@@ -31,6 +30,7 @@ namespace vengin {
 		SwapChainSupportDetails getSwapchainSupprts() { return querySwapChainSupport(physicalDevice); }//返回交换链的创建细节
 		QueueFamilyIndices findPhysicalFamilies() { return findQueueFamilies(physicalDevice); }//返回队列族的索引 n
 		VkCommandPool getCommandPool() { return commandPool; }
+		VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
 		VkQueue getGraphicsQueue() { return graphicsQueue_; }
 		VkQueue getPresentQueue() { return presentQueue_; }
 		void createInstance();//创建实例
@@ -45,7 +45,7 @@ namespace vengin {
 		
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;//物理设备,初始化位空
 		veWindow& window;//窗口对象
-		veSwapChain& swapChain;//交换链
+		//veSwapChain& swapChain;//交换链
 		VkQueue graphicsQueue_, presentQueue_;//渲染与呈现队列
 		VkCommandPool commandPool;//命令池
 		//function
@@ -58,8 +58,8 @@ namespace vengin {
 		void pickPhysicalDevice();//选取物理设备
 		void createSurface();//创建渲染表面
 		void createLogicalDevice();//创建逻辑设备
-		void createSwapChain();
-		void createSwapChainImageViews();
+		//void createSwapChain();
+		//void createSwapChainImageViews();
 		void createCommandPool();
 		bool isDeviceSuitable(VkPhysicalDevice device);//筛选物理设备
 		

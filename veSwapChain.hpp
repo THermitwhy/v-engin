@@ -1,9 +1,10 @@
 #pragma once
-#include "veWindow.hpp"
+#include "veDevice.hpp"
+#include "vePipeline.hpp"
 namespace vengin {
 	class veSwapChain {
 	public:
-		veSwapChain();
+		veSwapChain(veDevice& vedevice);
 
 		//func
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
@@ -11,15 +12,25 @@ namespace vengin {
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>
 			availablePresentModes);
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-		void getSwapChainImages(VkDevice& device);
-		void createImageViews(VkDevice &device);
+
+		void createSwapChain();
+		void getSwapChainImages();
+		void createImageViews();
+		void createRenderPass();
+		void createPipeline();
 		void createFrameBuffers();
-		void cleanImageViews(VkDevice& device);
+		//void createCommandBuffers();
+		void cleanImageViews();
 		//obj
 		VkSwapchainKHR swapChain;
+		veDevice& vedevice;
+		//vePipeline vepipeline;
 		std::vector<VkImage> swapChainImages;//½»»»Á´Í¼Ïñ
 		std::vector<VkImageView> swapChainImageViews;//½»»»Á´Í¼ÏñÊÓÍ¼
+		VkRenderPass renderPass;//äÖÈ¾¸½×Å
 		std::vector<VkFramebuffer> swapChainFramebuffers;//Ö¡»º³åÈÝÆ÷
+		//std::vector<VkCommandBuffer> commandBuffers;
+		vePipeline *vepipeline;/////
 		VkFormat swapChainImageFormat;
 		VkExtent2D swapChainExtent;
 	};

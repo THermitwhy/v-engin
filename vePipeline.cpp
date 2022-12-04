@@ -1,14 +1,17 @@
 
 #include "vePipeline.hpp"
 
-vengin::vePipeline::vePipeline(VkDevice& device, VkExtent2D swapChainExtent, VkRenderPass& renderPass) :device(device),swapChainExtent(swapChainExtent),renderPass(renderPass)
+
+vengin::vePipeline::vePipeline(veDevice& vedevice, VkExtent2D swapChainExtent, VkRenderPass& renderPass) :vedevice(vedevice),swapChainExtent(swapChainExtent),renderPass(renderPass)
 {
+	loadShader();
+	createPipeline();
 }
 
 void vengin::vePipeline::loadShader()
 {
-	auto vertShaderCode = readFile("shaders/vert.spv");//
-	auto fragShaderCode = readFile("shaders/frag.spv");
+	auto vertShaderCode = readFile("vert.spv");//
+	auto fragShaderCode = readFile("frag.spv");
 	vertShaderModule = createShaderModule(vertShaderCode);
 	fragShaderModule = createShaderModule(fragShaderCode);
 }
@@ -135,7 +138,7 @@ void vengin::vePipeline::createPipeline()
 	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
+	if (vkCreatePipelineLayout(vedevice.getDevice(), &pipelineLayoutInfo, nullptr,
 		&pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
@@ -163,7 +166,7 @@ void vengin::vePipeline::createPipeline()
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineInfo.basePipelineIndex = -1; // Optional
 
-	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1,
+	if (vkCreateGraphicsPipelines(vedevice.getDevice(), VK_NULL_HANDLE, 1,
 		&pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create graphics pipeline!");
 	}
@@ -171,8 +174,8 @@ void vengin::vePipeline::createPipeline()
 
 void vengin::vePipeline::cleanPipeline()
 {
-	vkDestroyPipeline(device, graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyPipeline(vedevice.getDevice(), graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(vedevice.getDevice(), pipelineLayout, nullptr);
 }
 
 VkShaderModule vengin::vePipeline::createShaderModule(const std::vector<char>& code)
@@ -182,7 +185,7 @@ VkShaderModule vengin::vePipeline::createShaderModule(const std::vector<char>& c
 	createInfo.codeSize = code.size();
 	createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 	VkShaderModule shaderModule;
-	if (vkCreateShaderModule(device, &createInfo, nullptr,
+	if (vkCreateShaderModule(vedevice.getDevice(), &createInfo, nullptr,
 		&shaderModule) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create shader module!");
 	}
