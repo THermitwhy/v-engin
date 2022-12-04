@@ -14,6 +14,11 @@ namespace vengin {
 		veWindow(int width, int height, const char* title) ;
 		~veWindow();
 
+		static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+			auto app = reinterpret_cast<veWindow*>(glfwGetWindowUserPointer(window));
+			app->framebufferResized = true;
+		}
+
 		veWindow(const veWindow&) = delete;
 		veWindow &operator=(const veWindow&) = delete;
 
@@ -21,13 +26,15 @@ namespace vengin {
 		void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);;
 		bool shouldClose() { return glfwWindowShouldClose(window); }
 		void initWindow();
+		GLFWwindow* window;
+		bool framebufferResized = false;
 	private:
 		//create function
 		
 
 
 		//obj|handle
-		GLFWwindow* window;
+		
 
 
 		int width;

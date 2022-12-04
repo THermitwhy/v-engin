@@ -6,6 +6,7 @@ namespace vengin {
 	public:
 		veSwapChain(veDevice& vedevice);
 		~veSwapChain();
+		void init();
 		void clean();
 		//func
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
@@ -25,6 +26,7 @@ namespace vengin {
 		//obj
 		VkSwapchainKHR swapChain;
 		veDevice& vedevice;
+		//GLFWwindow* window;
 		//vePipeline vepipeline;
 		std::vector<VkImage> swapChainImages;//Ωªªª¡¥ÕºœÒ
 		std::vector<VkImageView> swapChainImageViews;//Ωªªª¡¥ÕºœÒ ”Õº

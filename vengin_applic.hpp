@@ -26,6 +26,7 @@ namespace vengin {
 		std::vector<VkSemaphore> renderFinishedSemaphores;
 		std::vector<VkFence> inFlightFences;
 		size_t currentFrame = 0;
+		//bool framebufferResized = false;
 		//veSwapChain vSwapchain;
 		veWindow vWindow{800,600,"hello vulkan"};
 		veDevice vDevice{ vWindow };

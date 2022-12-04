@@ -2,9 +2,13 @@
 namespace vengin {
 	veRender::veRender(veDevice& vedevice):vedevice(vedevice)
 	{
-		veswapchain = new veSwapChain(vedevice);
+		createSwapChain();
 		createCommandPool();
 		createCommandBuffers();
+	}
+	void veRender::createSwapChain()
+	{
+		veswapchain = new veSwapChain(vedevice);
 	}
 	void veRender::createCommandPool()
 	{
@@ -73,6 +77,22 @@ namespace vengin {
 	{
 		vkDestroyCommandPool(vedevice.getDevice(), commandPool, nullptr);
 		delete veswapchain;
+	}
+
+	void veRender::cleanUpVeSwapChain()
+	{
+	}
+
+	void veRender::updateVeSwapChain()
+	{
+		vkDeviceWaitIdle(vedevice.getDevice());
+		vkFreeCommandBuffers(vedevice.getDevice(), commandPool,
+			static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+		veswapchain->clean();
+		veswapchain->init();
+		createCommandBuffers();
+
+
 	}
 
 	

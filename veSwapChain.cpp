@@ -3,17 +3,22 @@
 
 vengin::veSwapChain::veSwapChain(veDevice& vedevice):vedevice(vedevice)
 {
+	init();
+}
+
+vengin::veSwapChain::~veSwapChain()
+{
+	clean();
+}
+
+void vengin::veSwapChain::init()
+{
 	createSwapChain();
 	getSwapChainImages();
 	createImageViews();
 	createRenderPass();
 	createPipeline();
 	createFrameBuffers();
-}
-
-vengin::veSwapChain::~veSwapChain()
-{
-	clean();
 }
 
 void vengin::veSwapChain::clean()
@@ -72,8 +77,13 @@ VkExtent2D vengin::veSwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR&
 		return capabilities.currentExtent;
 	}
 	else {
-		VkExtent2D actualExtent = { WIDTH, HEIGHT };
+		int width, height;
+		glfwGetFramebufferSize(vedevice.window.window, &width, &height);
 
+		VkExtent2D actualExtent = {
+					static_cast<uint32_t>(width),
+					static_cast<uint32_t>(height)
+		};
 		actualExtent.width = std::max(capabilities.minImageExtent.width,
 			std::min(capabilities.maxImageExtent.width,
 				actualExtent.width));

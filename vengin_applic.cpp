@@ -43,7 +43,7 @@ namespace vengin {
 		vkWaitForFences(vDevice.getDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 		vkResetFences(vDevice.getDevice(), 1, &inFlightFences[currentFrame]);
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(vDevice.getDevice(), vRender.veswapchain->swapChain, std::numeric_limits<uint64_t>::max(),
+		VkResult result = vkAcquireNextImageKHR(vDevice.getDevice(), vRender.veswapchain->swapChain, std::numeric_limits<uint64_t>::max(),
 			imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -58,6 +58,41 @@ namespace vengin {
 		VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[imageIndex] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
+
+
+
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || 
+			vWindow.framebufferResized) {
+			vWindow.framebufferResized = false;
+			//vkResetFences(vDevice.getDevice(), 1, &inFlightFences[currentFrame]);
+			vRender.updateVeSwapChain();
+			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+				vkDestroySemaphore(vDevice.getDevice(), renderFinishedSemaphores[i], nullptr);
+				vkDestroySemaphore(vDevice.getDevice(), imageAvailableSemaphores[i], nullptr);
+				vkDestroyFence(vDevice.getDevice(), inFlightFences[i], nullptr);
+			}
+			createSyncObjects();
+			//vkResetFences(vDevice.getDevice(), 1, &inFlightFences[currentFrame]);
+			/*if (vkQueueSubmit(vDevice.getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to submit draw command buffer!");
+			}*/
+			
+
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("failed to acquire swap chain image!");
+		}
+
+
+		
+		//vkAcquireNextImageKHR(vDevice.getDevice(), vRender.veswapchain->swapChain, std::numeric_limits<uint64_t>::max(),
+		//	imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
 		if (vkQueueSubmit(vDevice.getGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}

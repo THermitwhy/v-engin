@@ -36,7 +36,7 @@ namespace vengin {
 		void createInstance();//创建实例
 		//obj
 		VkSurfaceKHR surface_;//渲染表面,借助GLFW获得的可供Vulkan渲染的表面
-		
+		veWindow& window;
 	private:
 		//object
 		VkInstance instance;//实例
@@ -44,7 +44,7 @@ namespace vengin {
 		VkDevice device_;//逻辑设备
 		
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;//物理设备,初始化位空
-		veWindow& window;//窗口对象
+		//窗口对象
 		//veSwapChain& swapChain;//交换链
 		VkQueue graphicsQueue_, presentQueue_;//渲染与呈现队列
 		VkCommandPool commandPool;//命令池
