@@ -1,6 +1,6 @@
 
 #include "vePipeline.hpp"
-
+#include "vertexes.hpp"
 
 vengin::vePipeline::vePipeline(veDevice& vedevice, VkExtent2D swapChainExtent, VkRenderPass& renderPass) :vedevice(vedevice),swapChainExtent(swapChainExtent),renderPass(renderPass)
 {
@@ -15,8 +15,8 @@ vengin::vePipeline::~vePipeline()
 
 void vengin::vePipeline::loadShader()
 {
-	auto vertShaderCode = readFile("vert.spv");//
-	auto fragShaderCode = readFile("frag.spv");
+	auto vertShaderCode = readFile("D:/C++ CodeStudy/v-engins/v-engin/shaders/vert.spv");//
+	auto fragShaderCode = readFile("D:/C++ CodeStudy/v-engins/v-engin/shaders/frag.spv");
 	vertShaderModule = createShaderModule(vertShaderCode);
 	fragShaderModule = createShaderModule(fragShaderCode);
 }
@@ -38,11 +38,15 @@ void vengin::vePipeline::createPipeline()
 	{ vertShaderStageInfo, fragShaderStageInfo };
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+
+	auto bindingDescription = Vertex::getBindingDescription();
+	auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+	vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
