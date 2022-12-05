@@ -28,13 +28,15 @@ namespace vengin {
 		vePipeline(veDevice& vedevice,VkExtent2D swapChainExtent, VkRenderPass& renderPass);
 		~vePipeline();
 		void loadShader();
+		void createDescriptorSetLayout();//创建描述符布局
 		void createPipeline();
 		void cleanPipeline();
 		VkShaderModule  createShaderModule(const std::vector<char>& code);
 		veDevice& vedevice;
 		VkShaderModule vertShaderModule;
 		VkShaderModule fragShaderModule;
-		VkPipelineLayout pipelineLayout;
+		VkDescriptorSetLayout descriptorSetLayout;//描述符布局
+		VkPipelineLayout pipelineLayout;//管线布局
 		VkRenderPass& renderPass;
 		VkPipeline graphicsPipeline;
 		VkExtent2D swapChainExtent;

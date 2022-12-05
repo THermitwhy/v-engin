@@ -4,12 +4,14 @@
 
 vengin::vePipeline::vePipeline(veDevice& vedevice, VkExtent2D swapChainExtent, VkRenderPass& renderPass) :vedevice(vedevice),swapChainExtent(swapChainExtent),renderPass(renderPass)
 {
+	createDescriptorSetLayout();
 	loadShader();
 	createPipeline();
 }
 
 vengin::vePipeline::~vePipeline()
 {
+	//vkDestroyDescriptorSetLayout(vedevice.getDevice(), descriptorSetLayout, nullptr);//它不用跟着管线销毁，后面可以挪个地方
 	cleanPipeline();
 }
 
@@ -19,6 +21,28 @@ void vengin::vePipeline::loadShader()
 	auto fragShaderCode = readFile("D:/C++ CodeStudy/v-engins/v-engin/shaders/frag.spv");
 	vertShaderModule = createShaderModule(vertShaderCode);
 	fragShaderModule = createShaderModule(fragShaderCode);
+}
+
+void vengin::vePipeline::createDescriptorSetLayout()
+{
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	//descriptorCount成员变量用来指定数组中元素的个数。我们可以使用数组来指定骨骼动画使用的所有变换矩阵。
+	//在这里，我们的MVP矩阵只需要一个uniform缓冲对象，所以我们将descriptorCount的值设置为1。
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;//指定该描述符的使用场景，比如在顶点着色器中使用
+	uboLayoutBinding.pImmutableSamplers = nullptr; // 图像采样相关，当前为默认
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = 1;
+	layoutInfo.pBindings = &uboLayoutBinding;
+
+	if (vkCreateDescriptorSetLayout(vedevice.getDevice(), &layoutInfo, nullptr,
+		&descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create descriptor set layout!");
+	}
 }
 
 void vengin::vePipeline::createPipeline()
@@ -82,8 +106,10 @@ void vengin::vePipeline::createPipeline()
 
 	rasterizer.lineWidth = 1.0f;
 
+	/*rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;*/
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
@@ -142,8 +168,8 @@ void vengin::vePipeline::createPipeline()
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0; // Optional
-	pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+	pipelineLayoutInfo.setLayoutCount = 1; // Optional
+	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;//指定了描述符布局
 	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
@@ -186,6 +212,7 @@ void vengin::vePipeline::createPipeline()
 
 void vengin::vePipeline::cleanPipeline()
 {
+	vkDestroyDescriptorSetLayout(vedevice.getDevice(), descriptorSetLayout, nullptr);//它不用跟着管线销毁，后面可以挪个地方
 	vkDestroyPipelineLayout(vedevice.getDevice(), pipelineLayout, nullptr);
 	vkDestroyPipeline(vedevice.getDevice(), graphicsPipeline, nullptr);
 	

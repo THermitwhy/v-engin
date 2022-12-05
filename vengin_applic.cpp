@@ -45,6 +45,7 @@ namespace vengin {
 		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(vDevice.getDevice(), vRender.veswapchain->swapChain, std::numeric_limits<uint64_t>::max(),
 			imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+		vRender.updateUniformBuffer(imageIndex);
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 

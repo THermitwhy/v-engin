@@ -37,6 +37,8 @@ namespace vengin {
 		//obj
 		VkSurfaceKHR surface_;//渲染表面,借助GLFW获得的可供Vulkan渲染的表面
 		veWindow& window;
+		//VkDescriptorSetLayout descriptorSetLayout;//描述符布局
+		//void createDescriptorSetLayout();//创建描述符布局
 	private:
 		//object
 		VkInstance instance;//实例

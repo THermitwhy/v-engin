@@ -49,6 +49,7 @@ namespace vengin {
 		createSurface();//创建渲染表面
 		pickPhysicalDevice();//选择合适的物理设备
 		createLogicalDevice();//创建逻辑设备
+		//createDescriptorSetLayout();
 		//createCommandPool();//创建命令池
 		//createSwapChain();
 		//createSwapChainImageViews();
@@ -98,6 +99,27 @@ namespace vengin {
 			throw std::runtime_error("fail to create instance!");
 		}
 	}
+	//void veDevice::createDescriptorSetLayout()
+	//{
+	//	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	//	uboLayoutBinding.binding = 0;
+	//	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//	uboLayoutBinding.descriptorCount = 1;
+	//	//descriptorCount成员变量用来指定数组中元素的个数。我们可以使用数组来指定骨骼动画使用的所有变换矩阵。
+	//	//在这里，我们的MVP矩阵只需要一个uniform缓冲对象，所以我们将descriptorCount的值设置为1。
+	//	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;//指定该描述符的使用场景，比如在顶点着色器中使用
+	//	uboLayoutBinding.pImmutableSamplers = nullptr; // 图像采样相关，当前为默认
+
+	//	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	//	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	//	layoutInfo.bindingCount = 1;
+	//	layoutInfo.pBindings = &uboLayoutBinding;
+
+	//	if (vkCreateDescriptorSetLayout(device_, &layoutInfo, nullptr,
+	//		&descriptorSetLayout) != VK_SUCCESS) {
+	//		throw std::runtime_error("failed to create descriptor set layout!");
+	//	}
+	//}
 	//返回需要的扩展
 	std::vector<const char*> veDevice::getRequiredExtensions()
 	{
