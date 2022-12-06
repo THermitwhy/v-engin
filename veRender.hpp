@@ -2,6 +2,8 @@
 #include "veDevice.hpp"
 #include "veSwapChain.hpp"
 #include "vertexes.hpp"
+
+#include <stb_image.h>
 namespace vengin {
 	class veRender {
 	public:
@@ -15,6 +17,22 @@ namespace vengin {
 		void cleanUpVeSwapChain();
 		void updateVeSwapChain();
 
+		void createTextureImage();//创建纹理贴图
+		VkImageView textureImageView;//创建纹理贴图对象视图
+		VkImage textureImage;//用于存储纹理的图像对象
+		VkSampler textureSampler;//采样器对象
+		void createTextureImageView();//用于创建图像对象的视图
+		void createTextureSampler();//创建图像的采样器
+		VkDeviceMemory textureImageMemory;//为图像对象开辟的内存
+		void createImage(uint32_t width, uint32_t height, VkFormat
+			format, VkImageTiling tiling, VkImageUsageFlags usage,
+			VkMemoryPropertyFlags properties, VkImage& image,
+			VkDeviceMemory& imageMemory);//用于创建图像对象简化操作
+		    VkImageView createImageView(VkImage image, VkFormat format);//简化图像视图对象的创建
+		void transitionImageLayout(VkImage image, VkFormat format,
+			VkImageLayout oldLayout, VkImageLayout newLayout);//用于图像的布局变换
+		void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t
+			width, uint32_t height);
 
 		void createVertexBuffer();//创建顶点缓冲
 		void createIndexBuffer();//创建索引缓冲
@@ -43,5 +61,9 @@ namespace vengin {
 		std::vector<VkDescriptorSet> descriptorSets;
 		void createDescriptorPool();
 		void createDescriptorSets();
+
+		//辅助指令函数
+		VkCommandBuffer beginSingleTimeCommands();
+		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 	};
 }

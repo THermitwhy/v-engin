@@ -363,7 +363,7 @@ namespace vengin {
 		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 		return deviceProperties.deviceType ==
 			VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
-			deviceFeatures.geometryShader;
+			deviceFeatures.geometryShader&& deviceFeatures.samplerAnisotropy;
 	}
 	//寻找可用队列族
 	QueueFamilyIndices veDevice::findQueueFamilies(VkPhysicalDevice device)
