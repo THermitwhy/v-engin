@@ -1,7 +1,7 @@
 #pragma once
 #include "veDevice.hpp"
 #include "veSwapChain.hpp"
-#include "vertexes.hpp"
+//#include "vertexes.hpp"
 
 #include <stb_image.h>
 namespace vengin {
@@ -24,11 +24,18 @@ namespace vengin {
 		void createTextureImageView();//用于创建图像对象的视图
 		void createTextureSampler();//创建图像的采样器
 		VkDeviceMemory textureImageMemory;//为图像对象开辟的内存
+
+		VkImage depthImage;//深度图像对象
+		VkDeviceMemory depthImageMemory;//深度图像内存
+		VkImageView depthImageView;//深度图像视图
+		void createDepthResources();//创建深度图像对象
+
 		void createImage(uint32_t width, uint32_t height, VkFormat
 			format, VkImageTiling tiling, VkImageUsageFlags usage,
 			VkMemoryPropertyFlags properties, VkImage& image,
 			VkDeviceMemory& imageMemory);//用于创建图像对象简化操作
-		    VkImageView createImageView(VkImage image, VkFormat format);//简化图像视图对象的创建
+		    VkImageView createImageView(VkImage image, VkFormat format,
+				VkImageAspectFlags aspectFlags);//简化图像视图对象的创建
 		void transitionImageLayout(VkImage image, VkFormat format,
 			VkImageLayout oldLayout, VkImageLayout newLayout);//用于图像的布局变换
 		void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t
@@ -65,5 +72,13 @@ namespace vengin {
 		//辅助指令函数
 		VkCommandBuffer beginSingleTimeCommands();
 		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+		//辅助条件查询
+		VkFormat findSupportedFormat(const std::vector<VkFormat>&
+			candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat findDepthFormat();
+		bool hasStencilComponent(VkFormat format) {
+			return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format ==
+				VK_FORMAT_D24_UNORM_S8_UINT;
+		}
 	};
 }

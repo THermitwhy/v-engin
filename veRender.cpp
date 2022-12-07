@@ -1,10 +1,15 @@
 #include "veRender.hpp"
 #include "stb_image.h"
+
 namespace vengin {
 	veRender::veRender(veDevice& vedevice):vedevice(vedevice)
 	{
+		loadModel();
 		createSwapChain();
 		createCommandPool();
+		createDepthResources();
+		veswapchain->createFrameBuffers(depthImageView);
+		
 		createTextureImage();
 		createTextureImageView();
 		createTextureSampler();
@@ -58,6 +63,7 @@ namespace vengin {
 			if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
 				throw std::runtime_error("failed to begin recording command buffer!");
 			}
+
 			VkRenderPassBeginInfo renderPassInfo = {};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassInfo.renderPass = veswapchain->renderPass;
@@ -65,9 +71,11 @@ namespace vengin {
 			renderPassInfo.renderArea.offset = { 0, 0 };
 			renderPassInfo.renderArea.extent = veswapchain->swapChainExtent;
 
-			VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-			renderPassInfo.clearValueCount = 1;
-			renderPassInfo.pClearValues = &clearColor;
+			std::array<VkClearValue, 2> clearValues = {};
+			clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+			clearValues[1].depthStencil = { 1.0f, 0 };
+			renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+			renderPassInfo.pClearValues = clearValues.data();
 
 			vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -77,7 +85,7 @@ namespace vengin {
 			vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);//绑定顶点缓冲
 			
 			//vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-			vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);//绑定索引缓冲
+			vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);//绑定索引缓冲
 			/*vkCmdDraw(commandBuffers[i],
 				static_cast<uint32_t>(vertices.size()), 1, 0, 0);*/
 			vkCmdBindDescriptorSets(commandBuffers[i],
@@ -95,7 +103,7 @@ namespace vengin {
 	void veRender::createTextureImage()
 	{
 		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load("D:/C++ CodeStudy/v-engins/v-engin/shaders/miku.jpg",
+		stbi_uc* pixels = stbi_load("D:/C++ CodeStudy/v-engins/v-engin/textures/iron man 2.png",
 			&texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
 
@@ -138,7 +146,7 @@ namespace vengin {
 
 	void veRender::createTextureImageView()
 	{
-		textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM);
+		textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 
 	void veRender::createTextureSampler()
@@ -164,6 +172,20 @@ namespace vengin {
 		if (vkCreateSampler(vedevice.getDevice(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
+	}
+
+	void veRender::createDepthResources()
+	{
+		VkFormat depthFormat = findDepthFormat();
+		createImage(veswapchain->swapChainExtent.width, veswapchain->swapChainExtent.height,
+			depthFormat, VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage,
+			depthImageMemory);
+		depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+		transitionImageLayout(depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
 	}
 
 	void veRender::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
@@ -203,14 +225,15 @@ namespace vengin {
 		vkBindImageMemory(vedevice.getDevice(), image, imageMemory, 0);
 	}
 
-	VkImageView veRender::createImageView(VkImage image, VkFormat format)
+	VkImageView veRender::createImageView(VkImage image, VkFormat format,
+		VkImageAspectFlags aspectFlags)
 	{
 		VkImageViewCreateInfo viewInfo = {};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = image;
 		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		viewInfo.format = format;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		viewInfo.subresourceRange.aspectMask = aspectFlags;
 		viewInfo.subresourceRange.baseMipLevel = 0;
 		viewInfo.subresourceRange.levelCount = 1;
 		viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -245,6 +268,17 @@ namespace vengin {
 		VkPipelineStageFlags sourceStage;
 		VkPipelineStageFlags destinationStage;
 
+		if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			if (hasStencilComponent(format)) {
+				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+		}
+		else {
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+
 		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout ==
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
 			barrier.srcAccessMask = 0;
@@ -260,6 +294,15 @@ namespace vengin {
 
 			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout
+			== VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		}
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
@@ -422,11 +465,11 @@ namespace vengin {
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float,
 			std::chrono::seconds::period>(currentTime - startTime).count();
-		time = time * 0.1;
+		//time = time * 0.1;
 		UniformBufferObject ubo = {};
 		ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f),//模型变换
 			glm::vec3(0.0f, 0.0f, 1.0f));
-		ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),//视图变换
+		ubo.view = glm::lookAt(glm::vec3(2.0f,2.0f, 2.0f),//视图变换
 			glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.proj = glm::perspective(glm::radians(45.0f),//投影变换
 			veswapchain->swapChainExtent.width / (float)veswapchain->swapChainExtent.width,
@@ -442,6 +485,9 @@ namespace vengin {
 
 	void veRender::clean()
 	{
+		vkDestroyImageView(vedevice.getDevice(), depthImageView, nullptr);
+		vkDestroyImage(vedevice.getDevice(), depthImage, nullptr);
+		vkFreeMemory(vedevice.getDevice(), depthImageMemory, nullptr);
 		vkDestroyCommandPool(vedevice.getDevice(), commandPool, nullptr);
 		for (size_t i = 0; i < veswapchain->swapChainImages.size(); i++) {
 			vkDestroyBuffer(vedevice.getDevice(), uniformBuffers[i], nullptr);
@@ -468,10 +514,15 @@ namespace vengin {
 	void veRender::updateVeSwapChain()
 	{
 		vkDeviceWaitIdle(vedevice.getDevice());
+		vkDestroyImageView(vedevice.getDevice(), depthImageView, nullptr);
+		vkDestroyImage(vedevice.getDevice(), depthImage, nullptr);
+		vkFreeMemory(vedevice.getDevice(), depthImageMemory, nullptr);
 		vkFreeCommandBuffers(vedevice.getDevice(), commandPool,
 			static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 		veswapchain->clean();
 		veswapchain->init();
+		createDepthResources();
+		veswapchain->createFrameBuffers(depthImageView);
 		createCommandBuffers();
 
 
@@ -591,6 +642,38 @@ namespace vengin {
 		vkQueueWaitIdle(vedevice.getGraphicsQueue());
 
 		vkFreeCommandBuffers(vedevice.getDevice(), commandPool, 1, &commandBuffer);
+	}
+
+	VkFormat veRender::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+	{
+		for (VkFormat format : candidates) {
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(vedevice.getPhysicalDevice(), format, &props);
+			if (tiling == VK_IMAGE_TILING_LINEAR &&
+				(props.linearTilingFeatures & features) == features) {
+				return format;
+			}
+			else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
+				(props.optimalTilingFeatures & features) == features) {
+				return format;
+			}
+		}
+
+		throw std::runtime_error("failed to find supported format!");
+	}
+
+	VkFormat veRender::findDepthFormat()
+	{
+		return findSupportedFormat(
+			{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT,
+				VK_FORMAT_D24_UNORM_S8_UINT },
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	}
+
+	bool hasStencilComponent(VkFormat format) {
+		return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format ==
+			VK_FORMAT_D24_UNORM_S8_UINT;
 	}
 
 	

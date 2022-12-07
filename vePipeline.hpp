@@ -2,6 +2,7 @@
 #include "veDevice.hpp"
 #include <fstream>
 #include <vector>
+#include "vertexes.h"
 #ifndef VE_PIPELINE
 #define VE_PIPELINE
 

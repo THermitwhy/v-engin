@@ -20,7 +20,7 @@ namespace vengin {
 		void createImageViews();
 		void createRenderPass();
 		void createPipeline();
-		void createFrameBuffers();
+		void createFrameBuffers(VkImageView depthView);
 		//void createCommandBuffers();
 		void cleanImageViews();
 		//obj
@@ -36,5 +36,9 @@ namespace vengin {
 		vePipeline *vepipeline;/////
 		VkFormat swapChainImageFormat;
 		VkExtent2D swapChainExtent;
+
+		VkFormat findSupportedFormat(const std::vector<VkFormat>&
+			candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat findDepthFormat();
 	};
 }
