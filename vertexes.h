@@ -76,8 +76,8 @@ namespace vengin {
 
 	static std::vector<Vertex> vertices;
 	static std::vector<uint32_t> indices;
-	static VkBuffer vertexBuffer;
-	static VkDeviceMemory vertexBufferMemory;
+	//extern VkBuffer vertexBuffer;
+	//extern VkDeviceMemory vertexBufferMemory;
 
 	static void loadModel() {
 		tinyobj::attrib_t attrib;
@@ -86,7 +86,7 @@ namespace vengin {
 		std::string war;
 		std::string err;
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &war, &err, "D:/C++ CodeStudy/v-engins/v-engin/model/christmast ball.obj")) {
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &war, &err, "D:/C++ CodeStudy/v-engins/v-engin/model/Gun.obj")) {
 			throw std::runtime_error(err);
 		}
 
@@ -107,7 +107,7 @@ namespace vengin {
 
 
 
-				+vertex.color = { 1.0f, 1.0f, 1.0f };
+				vertex.color = { 1.0f, 1.0f, 1.0f };
 				vertices.push_back(vertex);
 				indices.push_back(indices.size());
 			}
